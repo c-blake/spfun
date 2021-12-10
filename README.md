@@ -1,6 +1,9 @@
 This is a library of special functions of statistics, mathematical physics, or
 other applied mathematics and numerical methods that support their evalution.
 
+Style
+-----
+
 Since often only 4 byte IEEE single precision is needed and since this uses both
 1/2 the space and, in a SIMD vectorized context, 1/2 the time, these routines
 are also usually generic over a floating point type `F` which may be `float32`
@@ -31,3 +34,13 @@ of time.  The reply estimate is absolute since additive adjustments seem more
 common than multiplicative and these do not alter the error. { This may be up
 for debate/change in early stages.  Perhaps relative error returns are best.
 E.g., since a caller need only multiply to convert, not divide. }
+
+Scope
+-----
+
+It'd be good to add hypergeometric functions (which often subsume or are used by
+so many others), spherical harmonics, bessel functions, elliptic, exponential,
+and trigonometric integrals, as well as the density/cdf/quantile functions for
+the more common probability distributions such as uniform, exponential, normal,
+Chi-square, F, logistic, gamma & beta, Cauchy, Weibull (maybe GEV), Poisson,
+Kolmogorov-Smirnov, maybe log Normal.  PRs are very welcome.
