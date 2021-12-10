@@ -23,7 +23,8 @@ then the method has failed, and the value is not to be trusted naively.
 In Nim, this is all modeled by two extra default parameters to generics for the
 calls: `err=1e-7, estp: F=ptr nil`.  To receive the reply estimate you must
 declare `var est: F` and pass `est.addr`.  (Yes, yes, we could and maybe should
-add an overload taking just an `est: var F`.)
+add an overload taking just an `est: var F`.)  If you do not care about these
+details then you can simply not pass the extra parameters and hope for the best.
 
 The requested error is relative since the caller does not know the answer ahead
 of time.  The reply estimate is absolute since additive adjustments seem more
