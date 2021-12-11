@@ -12,7 +12,7 @@ template lentz*(F: type,                # FP type
                 den0=den(0)) =          # if this is simpler than B(n) (eg. 0.0)
   ## Continued fraction evaluator by modified Lentz method.  This is a template
   ## in terms of templates `num(n)` ,`den(n)` since continued fraction series
-  ## have variadix mixed type (int/float) inputs.  Leaving all that type/param
+  ## have variadic mixed type (int/float) inputs.  Leaving all that type/param
   ## count fixing to a parent proc/func seems an ok way to abstract over that.
   ## NOTE: num(n) and den(n) are indexed starting from 1 as this is the common
   ## convention for series coefficient formulae.
