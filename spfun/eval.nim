@@ -19,10 +19,9 @@ template lentz*(F: type,                # FP type
   n = 1              # iteration number
   var A,B,C,D,scl: F # num,den,running C=PN(n)/PN(n-1),D=PD(n)/PD(n-1),updateFac
   C = den0
-  if (f = den0; f < F(eps)):            # Handle 1st step specially
-    B = F(1) / safeDivisor(den(1), F(eps))
+  if (f = C; f < F(eps)):               # Handle 1st step specially
     C = F(0.5) / F(eps)                 # Suppress num(2) for C; could be `inf`
-    D = B
+    D = F(1) / safeDivisor(den(1), F(eps)) 
     f = num(1) * D
     n = 2
   while n < maxIt:
