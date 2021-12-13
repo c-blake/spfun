@@ -1,12 +1,14 @@
 ## Provide various func/sprocs related to the binomial distribution
-
 import beta
 
-func binom_cdf*[F](p: F; n,k: int, err=1e-7, estp: ptr F=nil): F {.inline.} =
-  ## CDF of a (p,n) binomial random variable
-  F(1) - betaI(p, F(k + 1), F(n - k), err, estp)
+var est0: float64
 
-func binom_qtl*[F](p: F, n: int, qtl: F): int =
+func binom_cdf*[F](p: F; n,k: int, err=1e-7,
+                   est: var float64=est0): F {.inline.} =
+  ## CDF of a (p,n) binomial random variable
+  F(1) - betaI(p, F(k + 1), F(n - k), err, est)
+
+proc binom_qtl*[F](p: F, n: int, qtl: F): int =
   ## Least `k` such that `binom_cdf(p,n,k) <= qtl` (by binary search).
   let e = F(0.01) / n.F                 # only compute betaI to needed err
   var lo = 0
@@ -25,5 +27,5 @@ when isMainModule:
   assert binom_qtl(0.5, 10, 0.1719) == 3
   assert binom_qtl(0.5, 10, 0.828) == 5
   assert binom_qtl(0.5, 10, 0.829) == 6
-  var est: float32
-  echo binom_cdf(0.5f32, 10, 3, 0.01, est.addr), " +- ", est
+  var est: float64
+  echo binom_cdf(0.5f32, 10, 3, 0.01, est), " +- ", est

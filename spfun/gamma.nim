@@ -1,12 +1,14 @@
 ## Normalized/regularized incomplete gamma function.
 import math, eval, fpUt
 
-func lnGamma*[F](x: F; err: F=F(1e-6), estp: ptr F=nil): F {.inline.} =
+var est0: float64
+
+func lnGamma*[F](x: F; err: F=F(1e-6), est: var float64=est0): F {.inline.} =
   ## Natural log of the complete gamma function; Alias for `lgamma`.
   lgamma(x) # NOTE: Could add some fast, less accurate methods here
   #XXX Should put something for `estp`.
 
-func series[F](a, x, err: F; est: var F): F {.inline.} =
+func series[F](a, x, err: F; est: var float64=est0): F {.inline.} =
   var a = a                             # Editable param
   var t = F(1) / a                      # Initial running series term
   template init: untyped = t            # g(a, x)*e^x*x^-a =
@@ -16,7 +18,7 @@ func series[F](a, x, err: F; est: var F): F {.inline.} =
   powSeries(F, init, next, val, it, est, err)
   if est < err*val.abs: val else: F(0)  # NAN on convergence failure?
 
-func conFrac[F](a, x, err: F; est: var F): F {.inline.} =
+func conFrac[F](a, x, err: F; est: var float64=est0): F {.inline.} =
   template num(n): untyped =
     if n == 1: F(1) else: F(n-1) * (a - F(n-1)) #   1     1*(a-1) 2*(a-2)
   template den(n): untyped = x - a + F(2*n - 1) # ------- ------- ------- ..
@@ -24,12 +26,12 @@ func conFrac[F](a, x, err: F; est: var F): F {.inline.} =
   lentz(F, num, den, val, it, est, err, den0=F(0))
   if est < err: val else: F(0)          # NAN on convergence failure?
 
-func gammaI*[F](a, x: F; err: F=F(1e-6), estp: ptr F=nil, norm: ptr F=nil): F=
+proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=est0,
+                norm: ptr F=nil): F =
   ## Normalized incomplete gamma function: `integ(0,x, dt*exp(-t)*t^(a-1)/G(a)`.
   ## Sometimes this is called `P(a,x)`.  If given, `norm[] = lnGamma(a)`.
   let lnG = lnGamma(a, err)             #XXX assume calculated exactly
   let fac = exp(-x + a*ln(x) - lnG)
-  var est: F
   if x < F(0) or a < F(0): result = NAN # invalid
   elif x < a + F(1):
     result = series(a, x, err, est)
@@ -38,7 +40,7 @@ func gammaI*[F](a, x: F; err: F=F(1e-6), estp: ptr F=nil, norm: ptr F=nil): F=
     result = conFrac(a, x, err, est)
     result *= fac; est *= result        # relative -> absolute error pre compl
     result = F(1) - result
-  safeSet estp, est; safeSet norm, lnG  # optional returns
+  safeSet norm, lnG                     # optional returns
 
 when isMainModule:
   assert almostEqual(gammaI(3.0f32, 1.0f32), 0.080301404, 1e-6)

@@ -4,12 +4,14 @@
 ##  Ix(a,b)=----------- [-- -- --..  c_{2n+1} = -x(a+n)(a+b+n)/((a+2n)(a+2n+1))
 ##            a B(a,b)   1+ 1+ 1+    c_{2n}   =  x   n(b-n)   /((a+2n)(a+2n-1))
 
-import math, eval, fpUt
+import math, eval
+
+var est0: float64
 
 func lnBeta*[F](a, b: F): F {.inline.} = lgamma(a) + lgamma(b) - lgamma(a + b)
   ## Natural log of the complete beta function; often written `ln B(a,b)`.
 
-func betaCF[F](x, a, b, err: F; est: var F): F {.inline.} =
+func betaCF[F](x, a, b, err: F; est: var float64=est0): F {.inline.} =
   template den(n): untyped = F(1)
   template num(n): untyped =
     let m = F((n - 1) div 2)
@@ -22,25 +24,26 @@ func betaCF[F](x, a, b, err: F; est: var F): F {.inline.} =
 # if err > 0.005: ({.cast(noSideEffect).}: echo "its: ", it) # track cost
   if est < err: val else: F(0)          # NAN on convergence failure?
 
-func betaI*[F](x, a, b: F; err: F=F(1e-6), estp: ptr F=nil): F =
+func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=est0): F =
   ## Regularized incomplete beta function.  `B(x,a,b)/B(a,b)` where `B(x,a,b) =
   ## integral(0, x, dt*t^(a-1)*(1-t)^(b-1)`, sometimes written `B_x(a,b)`.
   if x == F(0) or x == F(1):
     result = x
-    safeSet estp, F(0)
+    est = 0f64
   elif x < F(0) or x > F(1):
     result = NAN
-    safeSet estp, F(0)
+    est = 0f64
   else:
     let xC = F(1) - x
     let B = exp(a * ln(x) + b * ln(xC) - lnBeta(a, b))
-    var est: F
+    var est: float64
     result =
       if x*(a + b + F(2)) < a + F(1):        B * betaCF(x , a, b, err, est) / a
       else                          : F(1) - B * betaCF(xC, b, a, err, est) / b
-    safeSet estp, est * result          # relative -> absolute error estimate
+    est *= result                       # relative -> absolute error estimate
 
 when isMainModule:
+  import fpUt
   assert almostEqual(lnBeta(2.0, 3.0), -2.484906649788, 1e-7)
   assert almostEqual(lnBeta(2.0f32, 3.0f32), -2.484906649788f32, 1e-7)
   assert almostEqual(betaI(0.5, 2.0, 3.0), 0.6875, 1e-7)
