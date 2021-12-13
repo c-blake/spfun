@@ -37,3 +37,25 @@ template lentz*(F: type,                # FP type
     if est < F(tol) and n >= minIt:
       break
     inc n
+
+template powSeries*(F: type,            # FP type
+                    init, next: untyped,# initialize & advance code for coefs
+                    f, n, est: untyped, # var F: running val, it & estim ABS.ERR
+                    tol=1e-7,           # minimum convergence error tolerance
+                    maxIt=100) =        # maximum number of terms
+  ## Power series evaluator.  This is a template in terms of whole term yielding
+  ## (including powers of x,y..) templates `init()` and `next(n)` since coefs
+  ## have variadic mixed type (int/float) inputs.  Leaving all that type/param
+  ## count fixing to a parent proc/func seems an ok way to abstract over that.
+  ## NOTE: The error estimate is (presently) naively just the current term which
+  ## is not always good.  This may need to grow an optional Nim `enum` parameter
+  ## specifying qualities of the series.
+  n = 1
+  f = init()
+  while n < maxIt:
+    est = next(n)
+    f += est
+    est = est.abs
+    if est < tol*f.abs:
+      break
+    inc n
