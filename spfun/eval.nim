@@ -20,8 +20,8 @@ template lentz*(F: type,                # FP type
   ## that type/param count fixing to a parent proc/func seems an ok way to
   ## abstract over that.  NOTE: num(0) is unused.
   var A,B,C,D,scl: F # num,den,running C=PN(n)/PN(n-1),D=PD(n)/PD(n-1),updateFac
-  f = den0
-  if f.abs < F(eps): f = eps # Could copySign; Shouldn't matter since it's eps
+  f = F(den0)
+  if f.abs < F(eps): f = F(eps) #Could copySign; Shouldn't matter since it's eps
   C = f
   D = F(0)
   n = 1              # iteration number
@@ -42,6 +42,7 @@ template powSeries*(F: type,            # FP type
                     init, next: untyped,# initialize & advance code for coefs
                     f, n, est: untyped, # var F: running val, it & estim ABS.ERR
                     tol=1e-7,           # minimum convergence error tolerance
+                    minIt=2,            # minimum number of terms
                     maxIt=100) =        # maximum number of terms
   ## Power series evaluator.  This is a template in terms of whole term yielding
   ## (including powers of x,y..) templates `init()` and `next(n)` since coefs
@@ -56,6 +57,6 @@ template powSeries*(F: type,            # FP type
     est = next(n)
     f += est
     est = est.abs
-    if est < tol*f.abs:
+    if est < F(tol)*f.abs:
       break
     inc n
