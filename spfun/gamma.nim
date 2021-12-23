@@ -1,14 +1,14 @@
 ## Normalized/regularized incomplete gamma function.
 import math, eval, fpUt
 
-var est0: float64
+var doNotUse: float64 # Only for default value; Callers must provide `est`.
 
-func lnGamma*[F](x: F; err: F=F(1e-6), est: var float64=est0): F {.inline.} =
+func lnGamma*[F](x: F; err: F=F(1e-6), est: var float64=doNotUse): F {.inline.}=
   ## Natural log of the complete gamma function; Alias for `lgamma`.
   lgamma(x) # NOTE: Could add some fast, less accurate methods here
   #XXX Should put something for `estp`.
 
-func series[F](a, x, err: F; est: var float64=est0): F {.inline.} =
+func series[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
   var a = a                             # Editable param
   var t = F(1) / a                      # Initial running series term
   template init: untyped = t            # g(a, x)*e^x*x^-a =
@@ -18,7 +18,7 @@ func series[F](a, x, err: F; est: var float64=est0): F {.inline.} =
   powSeries(F, init, next, val, it, est, err)
   if est < err*val.abs: val else: F(0)  # NAN on convergence failure?
 
-func conFrac[F](a, x, err: F; est: var float64=est0): F {.inline.} =
+func conFrac[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
   template num(n): untyped =
     if n == 1: F(1) else: F(n-1) * (a - F(n-1)) #   1     1*(a-1) 2*(a-2)
   template den(n): untyped = x - a + F(2*n - 1) # ------- ------- ------- ..
@@ -26,7 +26,7 @@ func conFrac[F](a, x, err: F; est: var float64=est0): F {.inline.} =
   lentz(F, num, den, val, it, est, err, den0=F(0))
   if est < err: val else: F(0)          # NAN on convergence failure?
 
-proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=est0,
+proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
                 norm: ptr F=nil): F =
   ## Normalized incomplete gamma function: `integ(0,x, dt*exp(-t)*t^(a-1)/G(a)`.
   ## Sometimes this is called `P(a,x)`.  If given, `norm[] = lnGamma(a)`.

@@ -6,12 +6,12 @@
 
 import math, eval
 
-var est0: float64
+var doNotUse: float64 # Only for default value; Callers must provide `est`.
 
 func lnBeta*[F](a, b: F): F {.inline.} = lgamma(a) + lgamma(b) - lgamma(a + b)
   ## Natural log of the complete beta function; often written `ln B(a,b)`.
 
-func betaCF[F](x, a, b, err: F; est: var float64=est0): F {.inline.} =
+func betaCF[F](x, a, b, err: F; est: var float64=doNotUse): F {.inline.} =
   template den(n): untyped = F(1)
   template num(n): untyped =
     let m = F((n - 1) div 2)
@@ -24,7 +24,7 @@ func betaCF[F](x, a, b, err: F; est: var float64=est0): F {.inline.} =
 # if err > 0.005: ({.cast(noSideEffect).}: echo "its: ", it) # track cost
   if est < err: val else: F(0)          # NAN on convergence failure?
 
-func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=est0): F =
+func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   ## Regularized incomplete beta function.  `B(x,a,b)/B(a,b)` where `B(x,a,b) =
   ## integral(0, x, dt*t^(a-1)*(1-t)^(b-1)`, sometimes written `B_x(a,b)`.
   if x == F(0) or x == F(1):

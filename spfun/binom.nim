@@ -1,10 +1,10 @@
 ## Provide various func/sprocs related to the binomial distribution
 import beta
 
-var est0: float64
+var doNotUse: float64 # Only for default value; Callers must provide `est`.
 
 func binom_cdf*[F](p: F; n,k: int, err=1e-7,
-                   est: var float64=est0): F {.inline.} =
+                   est: var float64=doNotUse): F {.inline.} =
   ## CDF of a (p,n) binomial random variable
   F(1) - betaI(p, F(k + 1), F(n - k), err, est)
 
