@@ -1,6 +1,13 @@
 import math
 
-func qtl*[F](p: F): F =
+func pdf*[F: SomeFloat](x: F): F =
+  ## PDF for unit Gaussian/normal distribution, N(0,1)
+  exp(F(-0.5)*x*x)/sqrt(F(2.0*PI))
+
+func cdf*[F: SomeFloat](x: F): F = F(0.5) * (F(1) + erf(x/sqrt(F(2))))
+  ## CDF of the unit Gaussian/normal distribution somtimes known as "Phi(x)".
+
+func qtl*[F: SomeFloat](p: F): F =
   ## Acklam's rational approx for inv. Gaussian CDF. |RelErr|<1.15e-9 globally.
   ## Ie., qtl(0.25) to qtl(0.75) gives the interquartile range of a unit normal.
   let a = [F(-3.969683028665376e+01), 2.209460984245205e+02,
