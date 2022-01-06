@@ -31,7 +31,7 @@ func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=doNotUse): F =
     result = x
     est = 0f64
   elif x < F(0) or x > F(1):
-    result = NAN
+    result = NaN
     est = 0f64
   else:
     let xC = F(1) - x

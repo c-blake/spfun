@@ -16,7 +16,7 @@ func series[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
     a += F(1); t *= x / a; t            #.. with G(z + 1) = z*G(z)
   var val: F; var it: int               #.. and G(a,x) = g(a,x)/G(a).
   powSeries(F, init, next, val, it, est, err)
-  if est < err*val.abs: val else: F(0)  # NAN on convergence failure?
+  if est < err*val.abs: val else: F(0)  # NaN on convergence failure?
 
 func conFrac[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
   template num(n): untyped =
@@ -24,7 +24,7 @@ func conFrac[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
   template den(n): untyped = x - a + F(2*n - 1) # ------- ------- ------- ..
   var val: F; var it: int                       # x-a+1 + x-a+3 + x-a+5 +
   lentz(F, num, den, val, it, est, err, den0=F(0))
-  if est < err: val else: F(0)          # NAN on convergence failure?
+  if est < err: val else: F(0)          # NaN on convergence failure?
 
 proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
                 norm: ptr F=nil): F =
@@ -32,7 +32,7 @@ proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
   ## Sometimes this is called `P(a,x)`.  If given, `norm[] = lnGamma(a)`.
   let lnG = lnGamma(a, err)             #XXX assume calculated exactly
   let fac = exp(-x + a*ln(x) - lnG)
-  if x < F(0) or a < F(0): result = NAN # invalid
+  if x < F(0) or a < F(0): result = NaN # invalid
   elif x < a + F(1):
     result = series(a, x, err, est)
     result *= fac; est *= fac           # track absolute error
