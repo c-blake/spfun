@@ -43,6 +43,7 @@ func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=doNotUse): F =
     est *= result                       # relative -> absolute error estimate
 
 when isMainModule:
+  when not declared(assert): import std/assertions
   import fpUt
   assert almostEqual(lnBeta(2.0, 3.0), -2.484906649788, 1e-7)
   assert almostEqual(lnBeta(2.0f32, 3.0f32), -2.484906649788f32, 1e-7)

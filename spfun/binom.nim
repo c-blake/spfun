@@ -20,6 +20,7 @@ proc binom_qtl*[F](p: F, n: int, qtl: F): int =
   lo
 
 when isMainModule:
+  when not declared(assert): import std/[formatfloat, assertions]
   import math                           # test with a 10 coin-flip example
   assert almostEqual(binom_cdf(0.5, 10, 3), 0.171875)
   assert almostEqual(binom_cdf(0.5, 10, 6), 0.828125) # 1 - 0.171875

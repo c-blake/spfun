@@ -11,4 +11,5 @@ func hoeffding*[F](n: int; t: F, err=F(0), est: var float64=doNotUse): F =
   est = 0.0f64                          # XXX should * epsilon[F]-ish * result
 
 when isMainModule:
+  when not declared(assert): import std/assertions
   assert almostEqual(hoeffding(2, 0.5), 0.7357588823428847)

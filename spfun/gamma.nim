@@ -43,6 +43,7 @@ proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
   safeSet norm, lnG                     # optional returns
 
 when isMainModule:
+  when not declared(assert): import std/assertions
   assert almostEqual(gammaI(3.0f32, 1.0f32), 0.080301404, 1e-6)
   assert almostEqual(gammaI(3.0f32, 3.0f32), 0.5768099  , 1e-6)
   assert almostEqual(gammaI(3.0f32, 5.0f32), 0.8753480  , 1e-6)
