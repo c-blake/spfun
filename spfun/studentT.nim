@@ -4,7 +4,7 @@ import beta, math
 
 proc cdf*[F](df, t: F): F =
   ## CDF of the student's T statistic of `df` degrees of freedom
-  return betaI(abs(df / (df + t * t)), F(0.5) * df, F(0.5), err=1e-7)
+  return betaI(abs(df / (df + t * t)), F(0.5) * df, F(0.5), err=F(1e-7))
 
 proc corrP*[F](r: F; n: int): F =
   ## P(Pearson linear corr coef > r|null hypothesis of linear independence).
