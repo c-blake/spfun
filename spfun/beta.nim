@@ -34,7 +34,7 @@ func betaI*[F](x, a, b: F; err: F=F(1e-6), est: var float64=doNotUse): F =
     result = NaN
     est = 0f64
   else:
-    let xC = F(1) - x
+    let xC = F(1) - x                   # x Complement (relative to unity)
     let B = exp(a * ln(x) + b * ln(xC) - lnBeta(a, b))
     var est: float64
     result =
