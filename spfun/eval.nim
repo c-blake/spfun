@@ -10,7 +10,7 @@ template lentz*(F: type,                # FP type
                 minIt=2,                # minimum number of coefs
                 maxIt=5000,             # maximum number of coefs
                 eps=1e-30,              # replacement for 0.0 in x/0.0 contexts
-                den0=den(0)) =          # if this is simpler than B(n) (eg. 0.0)
+                den0: untyped=den(0)) = # if this is simpler than B(n) (eg. 0.0)
   ## Continued fraction evaluator by modified Lentz method.  I.e., evaluate
   ##               num1   num2
   ##   f = den0 + ------ ------ .. = den0 + num1/(den1 + num2/(den2 + ..))
