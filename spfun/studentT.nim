@@ -46,23 +46,23 @@ proc toRanks*[F](xs: openArray[F]): seq[F] =
     result.setLen xs.len                # Allocate result list
     for (x, i) in xi: result[i] = x     # Copy just ranks to result
 
-proc ssq[F](xs: seq[F]): F = (for x in xs: result += x*x) # sum of squares
+proc ssq[F](xs: openArray[F]): F = (for x in xs: result += x*x) # sum of squares
 
-proc center[F](xs: var seq[F]) =        # Center about the mean
-  let mu = xs.sum/xs.len.float
+proc center[F](xs: var openArray[F]) =  # Center about the mean
+  let mu = xs.sum/xs.len.F
   for x in mitems(xs): x -= mu
 
-proc scale[F](xs: var seq[F]) =         # Scale to unit variance
-  let vI = sqrt(F(xs.len.float) / xs.ssq)
+proc scale[F](xs: var openArray[F]) =   # Scale to unit variance
+  let vI = sqrt(F(xs.len.F) / xs.ssq)
   for x in mitems(xs): x *= vI
 
-proc cor[F](xs, ys: seq[F]): F =        # Pearson Corr Coef of Already Unitized
+proc cor[F](xs, ys: openArray[F]): F =  # Pearson Corr Coef of Already Unitized
   for i in 0 ..< xs.len: result += xs[i]*ys[i]
-  result /= xs.len.float
+  result /= xs.len.F
 
-proc tau[F](xs, ys: seq[F]): F =        # Constant for Studentization
+proc tau[F](xs, ys: openArray[F]): F =  # Constant for Studentization
   for i in 0 ..< xs.len: result += xs[i]*xs[i] * ys[i]*ys[i]
-  sqrt result/xs.len.float
+  sqrt result/xs.len.F
 
 template forPerm[F](xs: var openArray[F]; B: int; body) =
   let nF = if xs.len < 12: xs.len.fac else: 12.fac
@@ -78,10 +78,11 @@ template forPerm[F](xs: var openArray[F]; B: int; body) =
 type Corr* = enum linear, rank                  ## Linear | Rank correlation
 type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
 
-proc ccPv*[F](xs,ys: seq[F]; B=999,cc=linear,altH=twoSide): tuple[cc,pVal: F] =
+proc ccPv*[F](xs, ys: openArray[F]; B=999, cc=linear, altH=twoSide):
+       tuple[cc, pVal: F] =
   ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
-  var xs = if cc == rank: xs.toRanks else: xs
-  var ys = if cc == rank: ys.toRanks else: ys
+  var xs: seq[F] = if cc == rank: xs.toRanks else: xs[0..^1]
+  var ys: seq[F] = if cc == rank: ys.toRanks else: ys[0..^1]
   xs.center; xs.scale; ys.center; ys.scale
   result.cc = cor(xs, ys)
   if altH == form: result.pVal = corrP(result.cc, xs.len); return
@@ -95,7 +96,7 @@ proc ccPv*[F](xs,ys: seq[F]; B=999,cc=linear,altH=twoSide): tuple[cc,pVal: F] =
       of greater: inc n, (rSS > rS0).int
       else: discard
     inc nB      # Dups may make saturated case have < n! arrangements of xs[i].
-  result.pVal = n.float / nB.float
+  result.pVal = n.F / nB.F
 
 when isMainModule:
   when defined danger: randomize()
