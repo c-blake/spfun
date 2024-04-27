@@ -65,7 +65,7 @@ proc tau[F](xs, ys: openArray[F]): F =  # Constant for Studentization
   sqrt result/xs.len.F
 
 template forPerm[F](xs: var openArray[F]; B: int; body) =
-  let nF = if xs.len < 12: xs.len.fac else: 12.fac
+  let nF = if xs.len < 12: xs.len.fac else: 12.fac # Max exact accuracy 12! =5e8
   let Bp = min(B, nF)                   # B' = either exactly n! or user value
   if Bp < nF:                           # Randomly sample likely unique perms
     for b in 1..Bp: xs.shuffle; body
