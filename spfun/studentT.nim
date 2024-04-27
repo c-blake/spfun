@@ -81,6 +81,7 @@ type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
 proc ccPv*[F](xs, ys: openArray[F]; B=999, cc=linear, altH=twoSide):
        tuple[cc, pVal: F] =
   ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
+  if xs.len != ys.len or xs.len == 0: return
   var xs: seq[F] = if cc == rank: xs.toRanks else: xs[0..^1]
   var ys: seq[F] = if cc == rank: ys.toRanks else: ys[0..^1]
   xs.center; xs.scale; ys.center; ys.scale
@@ -106,7 +107,7 @@ when isMainModule:
     let x = xy[0].toN; let y = xy[1].toN
     if y.len != x.len: quit "x.len != y.len\n", 1
     ccPv(x, y, B, corr, altH)
-  import cligen; dispatch p, cmdName="percc", echoResult=true, help={
+  import cligen; dispatch p, cmdName="studentT", echoResult=true, help={
     "xy"  : "paths to 2 ASCII number-vector files",
     "B"   : "permutations to sample",
     "corr": "CorrCoeff to test: linear, rank",
