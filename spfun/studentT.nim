@@ -1,10 +1,12 @@
 ## Provide various func/sprocs related to the Student's T distro & correlations.
 
 from beta          import betaI
+from binom         import BinomP, inc, est, nHit, nTry
 from std/math      import sqrt, sum, fac
-from std/algorithm import sort, nextPermutation
+from std/algorithm import sort
 from std/random    import shuffle, randomize
 from std/strutils  import strip, parseFloat
+when defined(nimPreviewSlimSystem): import std/syncio
 
 proc cdf*[F](df, t: F): F =
   ## CDF of the student's T statistic of `df` degrees of freedom
@@ -19,13 +21,19 @@ proc corrP*[F](r: F; n: int): F =
 
 ## Studentized permutation test of Pearson & Spearman Correlation Coefs.  Core
 ## idea is that under H0=no relationship, relative order of elements makes no
-## difference => sampling over stat(shuffles) yields P(stat|H0).  Yu shows test
-## better controls false positives for association under general scenarios like
+## difference => stat(shuffle) sampling gives P(stat|H0).  Yu&Hutson2020 shows
+## test better controls falsePos for association under general scenarios like
 ## small sample size & dependent-but-uncorrelated variables.  Currently, test
-## only supports H0=0, but alternative hypothesis can be 1|2-sided.  Optimized
-## version of https://github.com/hyu-ub/perk by Han Yu&Alan Hutson.  This code
-## lives here since it & CLI util directly check asymptotic approximation of
-## Student's T (ultimately marketed by Kendall & Stuart 1979).
+## supports only H0=0, but alternative hypoth can be 1|2-sided.  This is like
+## github.com/hyu-ub/perk but optimized.  Code is here since it & CLI directly
+## check asymptotic approximation of Student's T (marketed by Kendall 1979),
+## although there;s also a strong argument to be made for `spfun/binom.nim`.
+##
+## When nSamp<n! this repeats cor work (more so w/ties) & adds sampling noise
+## relative to `nextPermutation`.  OTOH, full averages: 1) don't easily fit into
+## target pValue-optimized approaches, 2) raise questions about re-sampling from
+## data vs. smoothed data, 3) Drawing statistical conclusions from <6 points is
+## too rarely sound to optimize for, 4) 6!=720 is often "good enough" anyway.
 
 proc toRanks*[F](xs: openArray[F]): seq[F] =
     ## Convert xs[i] to 1-origin ranks, mid-ranking exact ties.
@@ -58,57 +66,55 @@ proc scale[F](xs: var openArray[F]) =   # Scale to unit variance
 
 proc cor[F](xs, ys: openArray[F]): F =  # Pearson Corr Coef of Already Unitized
   for i in 0 ..< xs.len: result += xs[i]*ys[i]
-  result /= xs.len.F
 
 proc tau[F](xs, ys: openArray[F]): F =  # Constant for Studentization
   for i in 0 ..< xs.len: result += xs[i]*xs[i] * ys[i]*ys[i]
-  sqrt result/xs.len.F
-
-template forPerm[F](xs: var openArray[F]; B: int; body) =
-  let nF = if xs.len < 12: xs.len.fac else: 12.fac # Max exact accuracy 12! =5e8
-  let Bp = min(B, nF)                   # B' = either exactly n! or user value
-  if Bp < nF:                           # Randomly sample likely unique perms
-    for b in 1..Bp: xs.shuffle; body
-# When B << n!, above repeats averaging work & creates unneeded sampling noise.
-  else: # So, in that case, do whole set of permutations (must repeat `body`).
-    xs.sort                             # Nim perm gen is *lexicographic* & with
-    block: body                         #..dup vals needs in-order start to work
-    while xs.nextPermutation: (block: body)
+  result.sqrt
 
 type Corr* = enum linear, rank                  ## Linear | Rank correlation
 type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
 
-proc ccPv*[F](xs, ys: openArray[F]; B=999, cc=linear, altH=twoSide):
-       tuple[cc, pVal: F] =
+proc ccPv*[F](xs, ys: openArray[F]; minTry=9, ci=0.95, pVthr=0.05,
+              cc=linear, altH=twoSide, verbose=false): tuple[cc, pLo, pHi: F] =
   ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
-  if xs.len != ys.len or xs.len == 0: return
-  var xs: seq[F] = if cc == rank: xs.toRanks else: xs[0..^1]
-  var ys: seq[F] = if cc == rank: ys.toRanks else: ys[0..^1]
-  xs.center; xs.scale; ys.center; ys.scale
-  result.cc = cor(xs, ys)
-  if altH == form: result.pVal = corrP(result.cc, xs.len); return
-  let rS0 = result.cc / tau(xs, ys)     # Studentized to compare to
-  var n, nB: int                        # count of true side-conditions
-  forPerm(xs, B):                       # Sample(PERM) preserves mean=0, sd=1;
-    let rSS = cor(xs, ys) / tau(xs, ys) #..So, can standardize xs & ys ONCE..
-    case altH                           #..optimizing the rS sampling process.
-      of twoSide: inc n, (rSS.abs > rS0.abs).int
-      of less:    inc n, (rSS < rS0.abs).int
-      of greater: inc n, (rSS > rS0).int
+  if xs.len != ys.len or xs.len == 0: return               # Shuffle preserves..
+  var xs: seq[F] = if cc==rank: xs.toRanks else: xs[0..^1] #..mean=0,sd=1 =>can
+  var ys: seq[F] = if cc==rank: ys.toRanks else: ys[0..^1] #..standardize xs&ys
+  xs.center; xs.scale; ys.center; ys.scale                 #..ONCE to optimize
+  let nIRt = 1.0/sqrt(xs.len.F)                            #..sample re-calc to
+  result.cc = cor(xs, ys)/xs.len.F                         #..just dot&dot2.rt.
+  if altH == form:
+    result.pLo = corrP(result.cc, xs.len); result.pHi = result.pLo; return
+  let rS0 = result.cc/(nIRt*tau(xs,ys)) # Studentized to compare to
+  var bp: BinomP                        # Count side-conditions that are true
+  template count[F](bp: var BinomP; xs, ys: openArray[F]; rS0: F; altH: AltH) =
+    let rSS = cor(xs, ys)*nIRt/tau(xs, ys)
+    case altH                          
+      of twoSide: bp.inc (rSS.abs > rS0.abs).int
+      of less:    bp.inc (rSS < rS0.abs).int
+      of greater: bp.inc (rSS > rS0).int
       else: discard
-    inc nB      # Dups may make saturated case have < n! arrangements of xs[i].
-  result.pVal = n.F / nB.F
+  for it in 1..minTry: xs.shuffle; bp.count(xs, ys, rS0, altH)
+  while(bp.est(result.pLo,result.pHi,ci);result.pHi>pVthr and result.pLo<pVthr):
+    xs.shuffle                          # Repeat while not sure (@`ci`)..
+    bp.count(xs, ys, rS0, altH)         #..if pV is lower or higher.
+  if verbose: stderr.write "ccPv: ",bp.nHit," / ",bp.nTry," : ",bp.est,"\n"
 
 when isMainModule:
+  when defined(nimPreviewSlimSystem): import std/formatFloat
   when defined danger: randomize()
   proc toN(p:string):seq[float]=(for x in p.lines:result.add x.strip.parseFloat)
-  proc p(xy:seq[string]; B=999,corr=linear,altH=twoSide): tuple[cc,pVal:float]=
+  proc p(xy: seq[string]; minTry=9, ci=0.95, pVthr=0.05, corr=linear,
+         altH=twoSide, verbose=false): tuple[cc, pLo, pHi: float] =
     ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
     let x = xy[0].toN; let y = xy[1].toN
     if y.len != x.len: quit "x.len != y.len\n", 1
-    ccPv(x, y, B, corr, altH)
+    ccPv(x, y, minTry, ci, pVthr, corr, altH, verbose)
   import cligen; dispatch p, cmdName="studentT", echoResult=true, help={
-    "xy"  : "paths to 2 ASCII number-vector files",
-    "B"   : "permutations to sample",
-    "corr": "CorrCoeff to test: linear, rank",
-    "altH": "Altern. Hypothesis: - + twoSide form"}
+    "xy"     : "paths to 2 ASCII number-vector files",
+    "minTry" : "permutations to sample",
+    "ci"     : "conf.ival on pValue",
+    "pVthr"  : "pValue threshold",
+    "corr"   : "CorrCoeff to test: linear, rank",
+    "altH"   : "Altern. Hypothesis: - + twoSide form",
+    "verbose": "Altern. Hypothesis: - + twoSide form"}
