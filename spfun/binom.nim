@@ -85,7 +85,7 @@ when isMainModule:
       if sn.len != 2: quit "Need success & totalN", 1
       var bp = BinomP(s: sn[0], n: sn[1])
       bp.est(result.pLo, result.pHi, ci, algo)
-    import cligen; dispatch p, cmdName="binomp", echoResult=true, help={
+    import cligen; dispatch p, cmdName="binom", echoResult=true, help={
       "sn"  : "success & total trials",
       "ci"  : "confidence interval size",
       "algo": "method: Wald, Wilson, Agresti"}
