@@ -73,6 +73,8 @@ proc tau[F](xs, ys: openArray[F]): F =  # Constant for Studentization
 
 type Corr* = enum linear, rank                  ## Linear | Rank correlation
 type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
+var nEvalCcPv = 0
+proc ccPvEvalCount*(): int = nEvalCcPv ## Global time evaluation counter
 
 proc ccPv*[F](xs, ys: openArray[F]; minTry=9, ci=0.95, pVthr=0.05,
               cc=linear, altH=twoSide, verbose=false): tuple[cc, pLo, pHi: F] =
@@ -98,6 +100,7 @@ proc ccPv*[F](xs, ys: openArray[F]; minTry=9, ci=0.95, pVthr=0.05,
   while(bp.est(result.pLo,result.pHi,ci);result.pHi>pVthr and result.pLo<pVthr):
     xs.shuffle                          # Repeat while not sure (@`ci`)..
     bp.count(xs, ys, rS0, altH)         #..if pV is lower or higher.
+    inc nEvalCcPv                       # MT-unsafe BUT race only loses counts
   if verbose: stderr.write "ccPv: ",bp.nHit," / ",bp.nTry," : ",bp.est,"\n"
 
 when isMainModule:
