@@ -64,6 +64,8 @@ proc est*[F](bp: BinomP; pLo, pHi: var F; ci=0.95, algo=Wilson) =
     pLo = max(0.0, pT - sT)
     pHi = min(1.0, pT + sT)
 
+proc initBinomP*(hits, tries: int): BinomP = result.s = hits; result.n = tries
+
 proc est*(bp: BinomP; ci=0.95, algo=Wilson): tuple[pLo, pHi: float] =
   bp.est(result.pLo, result.pHi, ci, algo)
 
