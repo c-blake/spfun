@@ -18,9 +18,6 @@ iterator edf*[T](ts: seq[T]): (T, int) =
     inc c
   if c > 0:                     # Could be empty
     yield (tLast, c)
-#echo "one:" ;for e in edf(@[1]            ): echo e #@[(1,1)]
-#echo "unit:";for e in edf(@[1,2,3,4]      ): echo e #@[(1,1),(2,2),(3,3),(4,4)]
-#echo "vary:";for e in edf(@[1,2,2,2,3,4,4]): echo e #@[(1,1),(2,4),(3,5),(4,7)]
 
 proc cdplot*(tp="/tmp/cd/", gplot="", nCI=20, band=pointWise, wvls: Floats= @[],
              vals: Floats = @[], alphas: Floats = @[], xlabel="Sample Value",
@@ -59,14 +56,16 @@ set style data steps
 set xlabel "{xlabel}"
 set ylabel "Probability"
 plot """
-  for i, p in inputs:   #TODO Do alphas[i] & main-EDF plot titles 4key
+  for i, p in inputs:
     for j in 1..nCI:
       let cCI = rgb(wvls[i], sat=1.0 - j.float/float(nCI + 1), val=vals[i]).hex
+      let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
       let s = if i==0 and j==1: "" else: ",\\\n     "
-      g.write s, &"'{tp}/{p}ci-{j}' lw 2 lc rgb '#{cCI}'"
-      g.write &",\\\n     '{tp}/{p}ci+{j}' lw 2 lc rgb '#{cCI}'"
+      g.write s, &"'{tp}/{p}ci-{j}' lw 2 lc rgb '#{alph}{cCI}'"
+      g.write &",\\\n     '{tp}/{p}ci+{j}' lw 2 lc rgb '#{alph}{cCI}'"
     let cEDF = rgb(wvls[i], sat=1.0, val=vals[i]).hex
-    g.write &",\\\n     '{tp}/{p}EDF'  lw 3 lc rgb '#{cEDF}'"
+    let lab = if p.len>0: p else: "stdin"
+    g.write &",\\\n     '{tp}/{p}EDF'  lw 3 lc rgb '#{cEDF}' t '{lab}'"
   g.write "\n"; g.close
 
 when isMainModule:
