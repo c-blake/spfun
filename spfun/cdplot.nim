@@ -31,20 +31,16 @@ proc blur*(k=pw, ci=0.1; tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
     for f in lines(if p.len>0: p.open else: stdin): xs.add f.strip.parseFloat
     xs.sort; let n = xs.len             # Make, then emit EDF, C.Band files
     let e = mkdirOpen(&"{tp}/{p}EDF", fmWrite)
-    var cbfs: seq[File]
-    for j in 1..nCI:
-      cbfs.add open(&"{tp}/{p}cb-{j}", fmWrite)
-      cbfs.add open(&"{tp}/{p}cb+{j}", fmWrite)
     for (f, c) in edf(xs):
-      e.write f," ",c.float/n.float,"\n"
+      e.write f," ",c.float/n.float
       for j in 1..nCI:
         let ci = j.float/float(nCI + 1)
         let (lo, hi) = if   k == pw : initBinomP(c, n).est(ci)
                        elif k == sim: massartBand(c, n, ci)
                        else: (c.float/n.float, c.float/n.float) # no range
-        cbfs[2*j-2].write f," ",lo,"\n"
-        cbfs[2*j-1].write f," ",hi,"\n"
-    e.close; for cbf in cbfs: cbf.close
+        e.write " ",lo," ",hi
+      e.write "\n"
+    e.close
   let g = if gplot.len > 0: open(gplot, fmWrite) else: stdout
   g.write &"""#!/usr/bin/gnuplot
 # set terminal png size 1920,1080 font "Helvetica,10"; set output "cbands.png"
@@ -56,11 +52,11 @@ plot """
       let cCI = rgb(wvls[i], sat=1.0 - j.float/float(nCI + 1), val=vals[i]).hex
       let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
       let s = if i==0 and j==1: "" else: ",\\\n     "
-      g.write s, &"'{tp}/{p}ci-{j}' lw 2 lc rgb '#{alph}{cCI}'"
-      g.write &",\\\n     '{tp}/{p}ci+{j}' lw 2 lc rgb '#{alph}{cCI}'"
+      g.write s, &"'{tp}/{p}EDF' u 1:{2*j+1} lw 2 lc rgb '#{alph}{cCI}'"
+      g.write &",\\\n     '{tp}/{p}EDF' u 1:{2*j+2} lw 2 lc rgb '#{alph}{cCI}'"
     let cEDF = rgb(wvls[i], sat=1.0, val=vals[i]).hex
     let lab = if p.len>0: p else: "stdin"
-    g.write &",\\\n     '{tp}/{p}EDF'  lw 3 lc rgb '#{cEDF}' t '{lab}'"
+    g.write &",\\\n     '{tp}/{p}EDF' u 1:2 lw 3 lc rgb '#{cEDF}' t '{lab}'"
   g.write "\n"; g.close
 
 proc tube*(k=pw, ci=0.95;tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
