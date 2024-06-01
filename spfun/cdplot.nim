@@ -31,10 +31,10 @@ proc blur*(k=pw, ci=0.1; tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
     for f in lines(if p.len>0: p.open else: stdin): xs.add f.strip.parseFloat
     xs.sort; let n = xs.len             # Make, then emit EDF, C.Band files
     let e = mkdirOpen(&"{tp}/{p}EDF", fmWrite)
-    var cifs: seq[File]
+    var cbfs: seq[File]
     for j in 1..nCI:
-      cifs.add open(&"{tp}/{p}ci-{j}", fmWrite)
-      cifs.add open(&"{tp}/{p}ci+{j}", fmWrite)
+      cbfs.add open(&"{tp}/{p}cb-{j}", fmWrite)
+      cbfs.add open(&"{tp}/{p}cb+{j}", fmWrite)
     for (f, c) in edf(xs):
       e.write f," ",c.float/n.float,"\n"
       for j in 1..nCI:
@@ -42,9 +42,9 @@ proc blur*(k=pw, ci=0.1; tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
         let (lo, hi) = if   k == pw : initBinomP(c, n).est(ci)
                        elif k == sim: massartBand(c, n, ci)
                        else: (c.float/n.float, c.float/n.float) # no range
-        cifs[2*j-2].write f," ",lo,"\n"
-        cifs[2*j-1].write f," ",hi,"\n"
-    e.close; for cif in cifs: cif.close
+        cbfs[2*j-2].write f," ",lo,"\n"
+        cbfs[2*j-1].write f," ",hi,"\n"
+    e.close; for cbf in cbfs: cbf.close
   let g = if gplot.len > 0: open(gplot, fmWrite) else: stdout
   g.write &"""#!/usr/bin/gnuplot
 # set terminal png size 1920,1080 font "Helvetica,10"; set output "cbands.png"
