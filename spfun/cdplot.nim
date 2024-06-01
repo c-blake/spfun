@@ -30,7 +30,7 @@ proc blur*(k=pw, ci=0.1; tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
     var xs: seq[float]
     for f in lines(if p.len>0: p.open else: stdin): xs.add f.strip.parseFloat
     xs.sort; let n = xs.len             # Make, then emit EDF, C.Band files
-    let e = mkdirOpen(&"{tp}/{p}EDF", fmWrite)
+    let e = mkdirOpen(&"{tp}/{p}E", fmWrite)
     for (f, c) in edf(xs):
       e.write f," ",c.float/n.float
       for j in 1..nCI:
@@ -53,18 +53,19 @@ plot """
       let cCI = rgb(wvls[i], sat=1.0 - j.float/float(nCI + 1), val=vals[i]).hex
       let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
       let s = if i==0 and j==1: "" else: ",\\\n     "
-      g.write s, &"'{tp}/{p}EDF' u 1:{2*j+1} lw 2 lc rgb '#{alph}{cCI}'"
-      g.write &",\\\n     '{tp}/{p}EDF' u 1:{2*j+2} lw 2 lc rgb '#{alph}{cCI}'"
+      g.write s, &"'{tp}/{p}E' u 1:{2*j+1} lw 2 lc rgb '#{alph}{cCI}'"
+      g.write &",\\\n     '{tp}/{p}E' u 1:{2*j+2} lw 2 lc rgb '#{alph}{cCI}'"
     let cEDF = rgb(wvls[i], sat=1.0, val=vals[i]).hex
-    g.write &",\\\n     '{tp}/{p}EDF' u 1:2 lw 3 lc rgb '#{cEDF}' t '{lab}'"
+    g.write &",\\\n     '{tp}/{p}E' u 1:2 lw 3 lc rgb '#{cEDF}' t '{lab}'"
   g.write "\n"; g.close
 
 proc tube*(k=pw, ci=0.95;tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
+  if ci < 0.3: stderr.write &"cdplot warning: ci = {ci:.4f}\n"
   for p in ps:
     var xs: seq[float]
     for f in lines(if p.len>0: p.open else: stdin): xs.add f.strip.parseFloat
     xs.sort; let n = xs.len             # Make, then emit EDF, C.Band files
-    let e = mkdirOpen(&"{tp}/{p}EDF", fmWrite)
+    let e = mkdirOpen(&"{tp}/{p}E", fmWrite)
     for (f, c) in edf(xs):
       e.write f," ",c.float/n.float
       if k in {pw ,both}:
@@ -86,16 +87,16 @@ plot """
     let cIn = rgb(wvls[i], sat=0.5, val=vals[i]).hex
     let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
     if k == both: # Gnuplot has filledcurves & fillsteps, BUT no filledsteps;PR?
-      g.write s, &"'{tp}/{p}EDF' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
-      g.write &",\\\n     '{tp}/{p}EDF' u 1:4:6 w filledc lc rgb '#{alph}{cCB}'"
-      g.write &",\\\n     '{tp}/{p}EDF' u 1:5:3 w filledc lc rgb '#{alph}{cCB}'"
+      g.write s, &"'{tp}/{p}E' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
+      g.write &",\\\n     '{tp}/{p}E' u 1:4:6 w filledc lc rgb '#{alph}{cCB}'"
+      g.write &",\\\n     '{tp}/{p}E' u 1:5:3 w filledc lc rgb '#{alph}{cCB}'"
     else: # Idea of ^^ is 3 shaded regions: the 2 band boundaries & pastel inner
-      g.write s, &"'{tp}/{p}EDF' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
-      g.write &",\\\n     '{tp}/{p}EDF' u 1:3 lc rgb '#{alph}{cCB}'"
-      g.write &",\\\n     '{tp}/{p}EDF' u 1:4 lc rgb '#{alph}{cCB}'"
+      g.write s, &"'{tp}/{p}E' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
+      g.write &",\\\n     '{tp}/{p}E' u 1:3 lc rgb '#{alph}{cCB}'"
+      g.write &",\\\n     '{tp}/{p}E' u 1:4 lc rgb '#{alph}{cCB}'"
   g.write "\n"; g.close
 
-proc cdplot*(band=pointWise,ci=0.02, tp="/tmp/cd/",gplot="",xlabel="Sample Val",
+proc cdplot*(band=pointWise,ci=0.02, tp="/tmp/ed/",gplot="",xlabel="Sample Val",
   wvls:Fs= @[], vals:Fs= @[], alphas:Fs= @[], opt=both, inputs: Strs) =
   ## Generate files & gnuplot script to render CDF as confidence band blur|tube.
   ## If `.len < inputs.len` the final value of `wvls`, `vals`, or `alphas` is
