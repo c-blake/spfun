@@ -48,6 +48,7 @@ set key top left noautotitle    # EDFs go bot left->up right;Dot keys crowd plot
 set style data steps; set ylabel "Probability"; set xlabel "{xlabel}"
 plot """
   for i, p in ps:
+    let lab = if p.len>0: p else: "stdin"
     for j in 1..nCI:
       let cCI = rgb(wvls[i], sat=1.0 - j.float/float(nCI + 1), val=vals[i]).hex
       let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
@@ -55,12 +56,44 @@ plot """
       g.write s, &"'{tp}/{p}EDF' u 1:{2*j+1} lw 2 lc rgb '#{alph}{cCI}'"
       g.write &",\\\n     '{tp}/{p}EDF' u 1:{2*j+2} lw 2 lc rgb '#{alph}{cCI}'"
     let cEDF = rgb(wvls[i], sat=1.0, val=vals[i]).hex
-    let lab = if p.len>0: p else: "stdin"
     g.write &",\\\n     '{tp}/{p}EDF' u 1:2 lw 3 lc rgb '#{cEDF}' t '{lab}'"
   g.write "\n"; g.close
 
 proc tube*(k=pw, ci=0.95;tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
-  discard
+  for p in ps:
+    var xs: seq[float]
+    for f in lines(if p.len>0: p.open else: stdin): xs.add f.strip.parseFloat
+    xs.sort; let n = xs.len             # Make, then emit EDF, C.Band files
+    let e = mkdirOpen(&"{tp}/{p}EDF", fmWrite)
+    for (f, c) in edf(xs):
+      e.write f," ",c.float/n.float
+      if k in {pw ,both}:
+        let (lo, hi) = initBinomP(c, n).est(ci); e.write " ",lo," ",hi
+      if k in {sim,both}:
+        let (lo, hi) = massartBand(c, n, ci)   ; e.write " ",lo," ",hi
+      e.write "\n"
+    e.close
+  let g = if gplot.len > 0: open(gplot, fmWrite) else: stdout
+  g.write &"""#!/usr/bin/gnuplot
+# set terminal png size 1920,1080 font "Helvetica,10"; set output "cbands.png"
+set key top left noautotitle    # EDFs go bot left->up right;Dot keys crowd plot
+set style data steps; set ylabel "Probability"; set xlabel "{xlabel}"
+plot """
+  for i, p in ps:
+    let lab = if p.len>0: p else: "stdin"
+    let s = if i==0: "" else: ",\\\n     "
+    let cCB = rgb(wvls[i], sat=1.0, val=vals[i]).hex
+    let cIn = rgb(wvls[i], sat=0.5, val=vals[i]).hex
+    let alph = if alphas[i] < 1.0: int(alphas[i]*256).toHex[^2..^1] else: ""
+    if k == both: # Gnuplot has filledcurves & fillsteps, BUT no filledsteps;PR?
+      g.write s, &"'{tp}/{p}EDF' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
+      g.write &",\\\n     '{tp}/{p}EDF' u 1:4:6 w filledc lc rgb '#{alph}{cCB}'"
+      g.write &",\\\n     '{tp}/{p}EDF' u 1:5:3 w filledc lc rgb '#{alph}{cCB}'"
+    else: # Idea of ^^ is 3 shaded regions: the 2 band boundaries & pastel inner
+      g.write s, &"'{tp}/{p}EDF' u 1:3:4 w filledc lc rgb '#{alph}{cIn}' t '{lab}'"
+      g.write &",\\\n     '{tp}/{p}EDF' u 1:3 lc rgb '#{alph}{cCB}'"
+      g.write &",\\\n     '{tp}/{p}EDF' u 1:4 lc rgb '#{alph}{cCB}'"
+  g.write "\n"; g.close
 
 proc cdplot*(band=pointWise,ci=0.02, tp="/tmp/cd/",gplot="",xlabel="Sample Val",
   wvls:Fs= @[], vals:Fs= @[], alphas:Fs= @[], opt=both, inputs: Strs) =
