@@ -4,7 +4,7 @@ from spfun/binom import initBinomP, est
 from cligen/colorScl import rgb, hex # For details see: en.wikipedia.org/wiki/
 from cligen/osUt import mkdirOpen # CDF-based_nonparametric_confidence_interval
 type ConfBand* = enum pointWise, simultaneous, tube
-type TubeOpt* = enum pw="pointWise", sim="simultaneous", df="diff"
+type TubeOpt* = enum pw="pointWise", sim="simultaneous", both
 type Fs = seq[float]; type Strs = seq[string]
 
 iterator edf*[T](ts: seq[T]): (T, int) =
@@ -67,7 +67,7 @@ proc tube*(k=pw, ci=0.95;tp,gplot,xlabel:string; wvls,vals,alphas:Fs; ps:Strs) =
   discard
 
 proc cdplot*(band=pointWise,ci=0.02, tp="/tmp/cd/",gplot="",xlabel="Sample Val",
-  wvls:Fs= @[], vals:Fs= @[], alphas:Fs= @[], opt=df, inputs: Strs) =
+  wvls:Fs= @[], vals:Fs= @[], alphas:Fs= @[], opt=both, inputs: Strs) =
   ## Generate files & gnuplot script to render CDF as confidence band blur|tube.
   ## If `.len < inputs.len` the final value of `wvls`, `vals`, or `alphas` is
   ## re-used for subsequent inputs, otherwise they match pair-wise.
@@ -93,4 +93,4 @@ when isMainModule:
     "wvls"  : "cligen/colorScl HSV-based wvlens; 0.6",
     "vals"  : "values (V) of HSV fame; 0.8",
     "alphas": "alpha channel transparencies; 0.5",
-    "opt"   : "tube opts: pointWise simultaneous diff"}
+    "opt"   : "tube opts: pointWise simultaneous both"}
