@@ -42,6 +42,14 @@ proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
     result = F(1) - result
   safeSet norm, lnG                     # optional returns
 
+proc χ²*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
+  ## Chi-squared CDF `P(χ²<x)` for `df` degrees of freedom.
+  gammaI(0.5*df, 0.5*x)
+
+proc χ²c*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
+  ## Chi-squared ComplementaryCDF/SurvivalFunc `P(χ²>x)` for `df` deg.freedom.
+  1.F - χ²(df, x, err, est)
+
 when isMainModule:
   when not declared(assert): import std/assertions
   assert almostEqual(gammaI(3.0f32, 1.0f32), 0.080301404, 1e-6)
