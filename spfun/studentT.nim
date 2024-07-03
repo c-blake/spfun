@@ -76,7 +76,7 @@ type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
 var nEvalCcPv = 0
 proc ccPvEvalCount*(): int = nEvalCcPv ## Global time evaluation counter
 
-proc ccPv*[F](xs, ys: openArray[F]; minTry=9, ci=0.95, pVthr=0.05,
+proc ccPv*[F](xs,ys: openArray[F]; minTry=9, maxTry=250000, ci=0.95, pVthr=0.05,
               cc=linear, altH=twoSide, verbose=false): tuple[cc, pLo, pHi: F] =
   ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
   if xs.len != ys.len or xs.len == 0: return               # Shuffle preserves..
@@ -96,11 +96,13 @@ proc ccPv*[F](xs, ys: openArray[F]; minTry=9, ci=0.95, pVthr=0.05,
       of less:    bp.inc (rSS < rS0.abs).int
       of greater: bp.inc (rSS > rS0).int
       else: discard
+  let nE0 = nEvalCcPv
   for it in 1..minTry: xs.shuffle; bp.count(xs, ys, rS0, altH)
   while(bp.est(result.pLo,result.pHi,ci);result.pHi>pVthr and result.pLo<pVthr):
     xs.shuffle                          # Repeat while not sure (@`ci`)..
     bp.count(xs, ys, rS0, altH)         #..if pV is lower or higher.
     inc nEvalCcPv                       # MT-unsafe BUT race only loses counts
+    if nEvalCcPv > nE0 + maxTry: break
   if verbose: stderr.write "ccPv: ",bp.nHit," / ",bp.nTry," : ",bp.est,"\n"
 
 when isMainModule:
