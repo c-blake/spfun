@@ -109,15 +109,16 @@ when isMainModule:
   when defined(nimPreviewSlimSystem): import std/formatFloat
   when defined danger: randomize()
   proc toN(p:string):seq[float]=(for x in p.lines:result.add x.strip.parseFloat)
-  proc p(xy: seq[string]; minTry=9, ci=0.95, pVthr=0.05, corr=linear,
+  proc p(xy: seq[string]; minTry=9, maxTry=9, ci=0.95, pVthr=0.05, corr=linear,
          altH=twoSide, verbose=false): tuple[cc, pLo, pHi: float] =
     ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
     let x = xy[0].toN; let y = xy[1].toN
     if y.len != x.len: quit "x.len != y.len\n", 1
-    ccPv(x, y, minTry, ci, pVthr, corr, altH, verbose)
+    ccPv x, y, minTry, maxTry, ci, pVthr, corr, altH, verbose
   import cligen; dispatch p, cmdName="studentT", echoResult=true, help={
     "xy"     : "paths to 2 ASCII number-vector files",
-    "minTry" : "permutations to sample",
+    "minTry" : "min permutations to sample",
+    "maxTry" : "max permutations to sample",
     "ci"     : "conf.ival on pValue",
     "pVthr"  : "pValue threshold",
     "corr"   : "CorrCoeff to test: linear, rank",
