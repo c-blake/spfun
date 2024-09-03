@@ -76,7 +76,7 @@ type AltH* = enum less="-", greater="+", twoSide, form ## Kind of altern.hypoth.
 var nEvalCcPv = 0
 proc ccPvEvalCount*(): int = nEvalCcPv ## Global time evaluation counter
 
-proc ccPv*[F](xs,ys: openArray[F]; minTry=9, maxTry=250000, ci=0.95, pVthr=0.05,
+proc ccPv*[F](xs,ys: openArray[F]; minTry=9, maxTry=5000, ci=0.95, pVthr=0.05,
               cc=linear, altH=twoSide, verbose=false): tuple[cc, pLo, pHi: F] =
   ## Pearson Linear|Spearman Rank Correlation Coefficient with p-Value options
   if xs.len != ys.len or xs.len == 0: return               # Shuffle preserves..
