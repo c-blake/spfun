@@ -3,14 +3,13 @@
 
 from fpUt import safeDivisor
 
-template lentz*(F: type,                # FP type
-                num, den: untyped,      # numerator, denominator coef series
-                f, n, est: untyped,     # var F: running val, it & estim REL.ERR
-                tol=1e-7,               # minimum convergence error tolerance
-                minIt=2,                # minimum number of coefs
-                maxIt=5000,             # maximum number of coefs
-                eps=1e-30,              # replacement for 0.0 in x/0.0 contexts
-                den0: untyped=den(0)) = # if this is simpler than B(n) (eg. 0.0)
+template lentz0*(F: type,               # FP type
+                 num, den,den0: untyped,# numerator, denominator, den(0) coeffs
+                 f, n, est: untyped,    # var F: running val, it & estim REL.ERR
+                 tol=1e-7,              # minimum convergence error tolerance
+                 minIt=2,               # minimum number of coefs
+                 maxIt=5000,            # maximum number of coefs
+                 eps=1e-30) =           # replacement for 0.0 in x/0.0 contexts
   ## Continued fraction evaluator by modified Lentz method.  I.e., evaluate
   ##               num1   num2
   ##   f = den0 + ------ ------ .. = den0 + num1/(den1 + num2/(den2 + ..))
@@ -37,6 +36,11 @@ template lentz*(F: type,                # FP type
     if est < F(tol) and n >= minIt:
       break
     inc n
+
+template lentz*(F: type, num, den, f, n, est: untyped, tol=1e-7, minIt=2,
+                maxIt=5000, eps=1e-30) =
+  ## Just call `lentz0` with `den(0)` in the right argument slot.
+  lentz0 F, num, den, den(0), f, n, est, tol, minIt, maxIt, eps
 
 template powSeries*(F: type,            # FP type
                     init, next: untyped,# initialize & advance code for coefs

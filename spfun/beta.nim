@@ -20,7 +20,7 @@ func betaCF[F](x, a, b, err: F; est: var float64=doNotUse): F {.inline.} =
     else   : -(x * (a + m) * (a + b + m) / ((a + F(2)*m) * (a + F(2)*m + F(1))))
   var val: F
   var it: int
-  lentz(F, num, den, val, it, est, err, den0=F(0))
+  lentz0 F, num, den, F(0), val, it, est, err
 # if err > 0.005: ({.cast(noSideEffect).}: echo "its: ", it) # track cost
   if est < err: val else: F(0)          # NAN on convergence failure?
 

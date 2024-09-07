@@ -23,7 +23,7 @@ func conFrac[F](a, x, err: F; est: var float64=doNotUse): F {.inline.} =
     if n == 1: F(1) else: F(n-1) * (a - F(n-1)) #   1     1*(a-1) 2*(a-2)
   template den(n): untyped = x - a + F(2*n - 1) # ------- ------- ------- ..
   var val: F; var it: int                       # x-a+1 + x-a+3 + x-a+5 +
-  lentz(F, num, den, val, it, est, err, den0=F(0))
+  lentz0 F, num, den, F(0), val, it, est, err
   if est < err: val else: F(0)          # NaN on convergence failure?
 
 proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
