@@ -1,7 +1,7 @@
 ## Module for various special functions of classical probability theory (that
 ## are inspecific to any particular probabilility density/distribution).
 
-import math, fpUt
+import std/math, fpUt
 
 var doNotUse: float64 # Only for default value; Callers must provide `est`.
 

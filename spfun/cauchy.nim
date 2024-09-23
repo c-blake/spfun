@@ -1,4 +1,4 @@
-from math import PI, arctan, tan
+from std/math import PI, arctan, tan
 
 func pdf*[F: SomeFloat](x: F): F =
   ## PDF for unit Cauchy distribution.

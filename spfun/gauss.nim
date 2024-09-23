@@ -1,4 +1,4 @@
-import math
+import std/math
 
 func pdf*[F: SomeFloat](x: F): F =
   ## PDF for unit Gaussian/normal distribution, N(0,1)
