@@ -1,5 +1,5 @@
 # Package
-version     = "0.7.2"
+version     = "0.7.3"
 author      = "Charles Blake"
 description = "Special Functions of Stats & Physics"
 license     = "MIT/ISC"
