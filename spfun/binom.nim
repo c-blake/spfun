@@ -1,3 +1,4 @@
+{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## Provide various func/sprocs related to the binomial distribution
 from beta        import betaI
 from std/math    import sqrt, almostEqual

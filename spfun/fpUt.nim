@@ -1,3 +1,4 @@
+{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## This module contains various floating point utility funcs/procs useful in
 ## either evaluating or testing special functions.
 

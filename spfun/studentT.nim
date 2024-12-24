@@ -1,3 +1,4 @@
+{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## Provide various func/sprocs related to the Student's T distro & correlations.
 
 from beta          import betaI

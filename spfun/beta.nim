@@ -1,3 +1,4 @@
+{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## Provide complete & normalized/regularized incomplete beta functions.
 ## The latter is done via evaluation of the usual continued frac series:
 ##          x^a (1-x)^b   1 c1 c2  WHERE numerator coefs c_i are:
