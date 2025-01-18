@@ -1,4 +1,3 @@
-{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## Module for various special functions of classical probability theory (that
 ## are inspecific to any particular probabilility density/distribution).
 

@@ -1,4 +1,3 @@
-{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 ## This module contains various techniques for special function evaluation, e.g.
 ## power series, continued fractions, polynomial & Padé approximation, etc.
 

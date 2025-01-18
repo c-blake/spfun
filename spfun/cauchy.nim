@@ -1,4 +1,3 @@
-{.warning[Uninit]:off warning[ProveInit]:off.} # Should be verbosity:2 not 1
 from std/math import PI, arctan, tan
 
 func pdf*[F: SomeFloat](x: F): F =
