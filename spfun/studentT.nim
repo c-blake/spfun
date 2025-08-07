@@ -91,7 +91,7 @@ proc ccPv*[F](xs,ys: openArray[F]; minTry=9, maxTry=5000, ci=0.95, pVthr=0.05,
   var bp: BinomP                        # Count side-conditions that are true
   template count[F](bp: var BinomP; xs, ys: openArray[F]; rS0: F; altH: AltH) =
     let rSS = cor(xs, ys)*nIRt/tau(xs, ys)
-    case altH                          
+    case altH
       of twoSide: bp.inc (rSS.abs > rS0.abs).int
       of less:    bp.inc (rSS < rS0.abs).int
       of greater: bp.inc (rSS > rS0).int
