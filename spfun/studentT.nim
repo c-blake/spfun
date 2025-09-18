@@ -27,7 +27,7 @@ proc corrP*[F](r: F; n: int): F =
 ## supports only H0=0, but alternative hypoth can be 1|2-sided.  This is like
 ## github.com/hyu-ub/perk but optimized.  Code is here since it & CLI directly
 ## check asymptotic approximation of Student's T (marketed by Kendall 1979),
-## although there;s also a strong argument to be made for `spfun/binom.nim`.
+## although there's also a strong argument to be made for `spfun/binom.nim`.
 ##
 ## When nSamp<n! this repeats cor work (more so w/ties) & adds sampling noise
 ## relative to `nextPermutation`.  OTOH, full averages: 1) don't easily fit into
