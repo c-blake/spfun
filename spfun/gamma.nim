@@ -1,5 +1,5 @@
 ## Normalized/regularized incomplete gamma function.
-import math, eval, fpUt
+import math, eval
 
 var doNotUse: float64 # Only for default value; Callers must provide `est`.
 
@@ -40,7 +40,7 @@ proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
     result = conFrac(a, x, err, est)
     result *= fac; est *= result        # relative -> absolute error pre compl
     result = F(1) - result
-  safeSet norm, lnG                     # optional returns
+  if not norm.isNil: norm[] = lnG       # optional return
 
 proc χ²*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   ## Chi-squared CDF `P(χ²<x)` for `df` degrees of freedom.
@@ -51,7 +51,7 @@ proc χ²c*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   1.F - χ²(df, x, err, est)
 
 when isMainModule:
-  when not declared(assert): import std/assertions
+  import fpUt; when not declared(assert): import std/assertions
   assert almostEqual(gammaI(3.0f32, 1.0f32), 0.080301404, 1e-6)
   assert almostEqual(gammaI(3.0f32, 3.0f32), 0.5768099  , 1e-6)
   assert almostEqual(gammaI(3.0f32, 5.0f32), 0.8753480  , 1e-6)
