@@ -44,7 +44,7 @@ proc gammaI*[F](a, x: F; err: F=F(1e-6), est: var float64=doNotUse,
 
 proc χ²*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   ## Chi-squared CDF `P(χ²<x)` for `df` degrees of freedom.
-  gammaI(0.5*df, 0.5*x)
+  gammaI(0.5*df, 0.5*x, err, est)
 
 proc χ²c*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   ## Chi-squared ComplementaryCDF/SurvivalFunc `P(χ²>x)` for `df` deg.freedom.
