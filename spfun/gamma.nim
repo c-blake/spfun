@@ -51,7 +51,7 @@ proc χ²c*[F](df, x: F; err: F=F(1e-6), est: var float64=doNotUse): F =
   1.F - χ²(df, x, err, est)
 
 when isMainModule:
-  import fpUt; when not declared(assert): import std/assertions
+  import fpUt; when not declared(assert): import std/[assertions, formatFloat]
   assert almostEqual(gammaI(3.0f32, 1.0f32), 0.080301404, 1e-6)
   assert almostEqual(gammaI(3.0f32, 3.0f32), 0.5768099  , 1e-6)
   assert almostEqual(gammaI(3.0f32, 5.0f32), 0.8753480  , 1e-6)
@@ -60,3 +60,8 @@ when isMainModule:
   assert almostEqual(gammaI(3.0f64, 1.0f64, 1e-16),0.080301397071394193, 1e-16)
   assert almostEqual(gammaI(3.0f64, 3.0f64, 1e-16), 0.5768099188731565, 1e-16)
   assert almostEqual(gammaI(3.0f64, 5.0f64, 1e-16), 0.87534798051691887, 1e-16)
+  when defined bench: # ~20 <ns> (~100 clkCyc)/eval on 5.2GHz i7-1370P Perf-Core
+    import std/times; var s = 0f32; let t0 = epochTime()
+    for df in 1..100:
+      var x = 0.1f32; while x < 10: s += χ²(df.float32, x); x += 0.01
+    echo 1e9/100/1000*(epochTime() - t0)," <ns> per eval ",s
